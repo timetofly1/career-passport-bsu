@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, MessageSquare, FileText, Map } from 'lucide-react';
+import { Sparkles, ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3 } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -53,6 +53,8 @@ const Index = () => {
               { icon: MessageSquare, label: 'AI Career Chat' },
               { icon: Map, label: 'Career Roadmaps' },
               { icon: FileText, label: 'Resume Builder' },
+              { icon: Mic, label: 'Interview Prep' },
+              { icon: BarChart3, label: 'Skills Gap Analyzer' },
             ].map(f => (
               <div key={f.label} className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card text-sm">
                 <f.icon className="w-4 h-4 text-primary" />

@@ -1,14 +1,16 @@
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, FileText, Map, User, Sparkles, ArrowRight, Settings } from 'lucide-react';
+import { MessageSquare, FileText, Map, User, Sparkles, ArrowRight, Settings, Mic, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [
   { icon: MessageSquare, label: 'AI Career Chat', desc: 'Get personalized career advice', path: '/chat', color: 'bg-primary/10 text-primary' },
   { icon: Map, label: 'Career Roadmap', desc: 'Visual career path planning', path: '/chat?mode=roadmap', color: 'bg-emerald/10 text-emerald' },
   { icon: FileText, label: 'Resume Builder', desc: 'Generate & edit your resume', path: '/resume', color: 'bg-violet/10 text-violet' },
-  { icon: User, label: 'About You', desc: 'AI-powered personal profile', path: '/chat?mode=about', color: 'bg-warm/10 text-warm' },
+  { icon: Mic, label: 'Interview Prep', desc: 'Mock questions & AI feedback', path: '/interview', color: 'bg-warm/10 text-warm' },
+  { icon: BarChart3, label: 'Skills Gap Analyzer', desc: 'Compare skills to job requirements', path: '/skills-gap', color: 'bg-primary/10 text-primary' },
+  { icon: User, label: 'About You', desc: 'AI-powered personal profile', path: '/chat?mode=about', color: 'bg-violet/10 text-violet' },
 ];
 
 const Dashboard = () => {

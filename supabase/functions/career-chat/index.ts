@@ -67,6 +67,52 @@ Continue for 3-5 phases. Make it specific to the user's profile.`;
 [Give scores for top 3 career paths based on their profile, e.g., "Software Engineering: 92%"]`;
     } else if (mode === 'resume') {
       systemPrompt += `\n\nThe user wants help with their resume. Provide specific resume advice, content suggestions, and formatting tips. Help them craft compelling bullet points using the STAR method. Reference their profile data to suggest relevant content.`;
+    } else if (mode === 'interview') {
+      systemPrompt += `\n\nYou are an expert interview coach. Your role is to:
+1. Ask the user mock interview questions one at a time
+2. Wait for their answer
+3. Provide detailed, constructive feedback on their answer
+4. Score their response out of 10
+5. Suggest a better version of their answer
+
+Format feedback like:
+### 📝 Feedback
+**Score:** X/10
+**Strengths:** [what they did well]
+**Improvements:** [specific suggestions]
+
+### ✅ Stronger Answer
+[A polished version of their response]
+
+Use the STAR method (Situation, Task, Action, Result) for behavioral questions. Be encouraging but honest. Reference the user's profile to make questions relevant to their background.`;
+    } else if (mode === 'skills-gap') {
+      systemPrompt += `\n\nYou are a skills gap analyzer. When the user mentions a target job role or pastes a job description:
+
+1. Analyze their current profile (major, interests, goals, year)
+2. List the required skills for the target role
+3. Compare and identify gaps
+
+Format your analysis EXACTLY like this:
+
+## 📊 Skills Gap Analysis: [Target Role]
+
+### ✅ Skills You Have
+- [Skill] — [how their profile demonstrates this]
+
+### ⚠️ Skills to Develop
+- [Skill] — [why it's needed + how to learn it]
+
+### 📈 Readiness Score: X%
+
+### 🎯 Action Plan
+1. [Most critical skill to learn first + specific resource]
+2. [Second priority + timeline]
+3. [Third priority + project suggestion]
+
+### 💡 Quick Wins
+- [Things they can do this week to close gaps]
+
+Be specific with resources: courses, certifications, projects, books. Reference their major and interests to suggest the most relevant learning paths.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
