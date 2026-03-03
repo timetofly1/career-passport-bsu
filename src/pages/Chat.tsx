@@ -4,8 +4,8 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { streamChat } from '@/lib/stream-chat';
 import MessageCard from '@/components/MessageCard';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, User, Sparkles, Loader2 } from 'lucide-react';
+import ChatInput from '@/components/ChatInput';
+import { ArrowLeft, User, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
@@ -137,21 +137,15 @@ const Chat = () => {
 
       {/* Input */}
       <div className="border-t border-border p-4">
-        <form
-          onSubmit={e => { e.preventDefault(); send(); }}
-          className="flex gap-2 max-w-3xl mx-auto"
-        >
-          <Input
+        <div className="max-w-3xl mx-auto">
+          <ChatInput
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={setInput}
+            onSubmit={() => send()}
             placeholder={config.placeholder}
-            className="flex-1 h-11"
             disabled={isLoading}
           />
-          <Button type="submit" size="icon" className="h-11 w-11" disabled={!input.trim() || isLoading}>
-            <Send className="w-4 h-4" />
-          </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

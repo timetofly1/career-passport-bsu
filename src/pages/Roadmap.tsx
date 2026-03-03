@@ -5,7 +5,8 @@ import { streamChat } from '@/lib/stream-chat';
 import MessageCard from '@/components/MessageCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Map, Loader2, RotateCcw, ChevronRight } from 'lucide-react';
+import ChatInput from '@/components/ChatInput';
+import { ArrowLeft, Map, Loader2, RotateCcw, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -275,18 +276,15 @@ const Roadmap = () => {
       {/* Input - only show in result step */}
       {(step === 'result' || (step === 'generating' && !isLoading)) && (
         <div className="border-t border-border p-4">
-          <form onSubmit={e => { e.preventDefault(); sendFollowUp(); }} className="flex gap-2 max-w-3xl mx-auto">
-            <Input
+          <div className="max-w-3xl mx-auto">
+            <ChatInput
               value={followUpInput}
-              onChange={e => setFollowUpInput(e.target.value)}
+              onChange={setFollowUpInput}
+              onSubmit={() => sendFollowUp()}
               placeholder="Ask to refine, expand, or adjust your roadmap..."
-              className="flex-1 h-11"
               disabled={isLoading}
             />
-            <Button type="submit" size="icon" className="h-11 w-11" disabled={!followUpInput.trim() || isLoading}>
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
+          </div>
         </div>
       )}
     </div>
