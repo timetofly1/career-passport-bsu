@@ -58,6 +58,15 @@ const Resume = () => {
     if (user) loadResumesList();
   }, [user]);
 
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      saveResumeQuiet();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [user, resumeTitle, fullName, email, phone, sections, activeTemplate, currentResumeId]);
+
   const loadResumesList = async () => {
     if (!user) return;
     setIsLoadingResumes(true);
@@ -70,9 +79,9 @@ const Resume = () => {
     setIsLoadingResumes(false);
   };
 
-  const saveResume = async () => {
+  const saveResumeInner = async (quiet: boolean) => {
     if (!user) return;
-    setIsSaving(true);
+    if (!quiet) setIsSaving(true);
     try {
       const payload = {
         user_id: user.id,
@@ -100,15 +109,20 @@ const Resume = () => {
         if (data) setCurrentResumeId(data.id);
       }
 
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2000);
-      toast.success('Resume saved!');
+      if (!quiet) {
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 2000);
+        toast.success('Resume saved!');
+      }
       loadResumesList();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save');
+      if (!quiet) toast.error(err.message || 'Failed to save');
     }
-    setIsSaving(false);
+    if (!quiet) setIsSaving(false);
   };
+
+  const saveResume = () => saveResumeInner(false);
+  const saveResumeQuiet = () => saveResumeInner(true);
 
   const loadResume = async (id: string) => {
     const { data, error } = await supabase
