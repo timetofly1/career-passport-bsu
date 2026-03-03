@@ -106,13 +106,15 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="px-6 py-4 flex items-center gap-3 border-b border-border">
-          <div className="w-9 h-9 rounded-lg overflow-hidden">
-            <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <span className="font-display font-bold text-sm">Career Passport</span>
-            <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
-          </div>
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-9 h-9 rounded-lg overflow-hidden">
+              <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <span className="font-display font-bold text-sm">Career Passport</span>
+              <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
+            </div>
+          </a>
         </nav>
         <main className="flex-1 flex items-center justify-center px-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm text-center">
@@ -148,13 +150,15 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
       <nav className="px-6 py-4 flex items-center gap-3 border-b border-border">
-        <div className="w-9 h-9 rounded-lg overflow-hidden">
-          <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
-        </div>
-        <div>
-          <span className="font-display font-bold text-sm">Career Passport</span>
-          <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
-        </div>
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div className="w-9 h-9 rounded-lg overflow-hidden">
+            <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <span className="font-display font-bold text-sm">Career Passport</span>
+            <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
+          </div>
+        </a>
       </nav>
 
       <main className="flex-1 flex items-center justify-center px-4">
