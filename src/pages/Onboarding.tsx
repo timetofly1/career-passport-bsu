@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Sparkles, GraduationCap, Target, Heart } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, GraduationCap, Target, Heart, Plus, X } from 'lucide-react';
 import SearchableSelect from '@/components/SearchableSelect';
 import { BSU_MAJORS, BSU_MINORS } from '@/data/bsu-programs';
+import { getSuggestedInterests } from '@/data/major-interests-map';
 
 const GOALS = ['Get an Internship', 'Land a Full-Time Job', 'Build a Portfolio', 'Network with Professionals', 'Explore Career Options', 'Prepare for Graduate School'];
 const INTERESTS = [
@@ -22,6 +23,15 @@ const Onboarding = () => {
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
+  const [customInterest, setCustomInterest] = useState('');
+
+  // Get suggested interests based on major/minor
+  const suggestedInterests = getSuggestedInterests(profile.major, profile.minor || []);
+  // Show all standard interests, but put suggested ones first
+  const allInterests = [
+    ...suggestedInterests,
+    ...INTERESTS.filter(i => !suggestedInterests.includes(i)),
+  ];
 
   // Pre-fill name from auth if empty
   useEffect(() => {
@@ -197,23 +207,114 @@ const Onboarding = () => {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-3xl font-display font-bold mb-2">Your career interests</h1>
-                  <p className="text-muted-foreground">Pick fields that excite you. Aligned with BSU career interest areas.</p>
+                  <p className="text-muted-foreground">Pick fields that excite you. We've highlighted suggestions based on your studies.</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {INTERESTS.map(i => (
-                    <button
-                      key={i}
-                      onClick={() => setProfile(p => ({ ...p, interests: toggleArrayItem(p.interests, i) }))}
-                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                        profile.interests.includes(i)
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-card border-border hover:border-primary/50'
-                      }`}
+
+                {/* Suggested interests */}
+                {suggestedInterests.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Suggested for you</p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedInterests.map(i => (
+                        <button
+                          key={i}
+                          onClick={() => setProfile(p => ({ ...p, interests: toggleArrayItem(p.interests, i) }))}
+                          className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                            profile.interests.includes(i)
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-accent border-primary/20 hover:border-primary/50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Other interests */}
+                {INTERESTS.filter(i => !suggestedInterests.includes(i)).length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Other areas</p>
+                    <div className="flex flex-wrap gap-2">
+                      {INTERESTS.filter(i => !suggestedInterests.includes(i)).map(i => (
+                        <button
+                          key={i}
+                          onClick={() => setProfile(p => ({ ...p, interests: toggleArrayItem(p.interests, i) }))}
+                          className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                            profile.interests.includes(i)
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-card border-border hover:border-primary/50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom interest input */}
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Don't see your interest?</p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Type a custom interest…"
+                      value={customInterest}
+                      onChange={e => setCustomInterest(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && customInterest.trim()) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!profile.interests.includes(customInterest.trim())) {
+                            setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
+                          }
+                          setCustomInterest('');
+                        }
+                      }}
+                      className="h-10 text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 shrink-0"
+                      disabled={!customInterest.trim()}
+                      onClick={() => {
+                        if (customInterest.trim() && !profile.interests.includes(customInterest.trim())) {
+                          setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
+                        }
+                        setCustomInterest('');
+                      }}
                     >
-                      {i}
-                    </button>
-                  ))}
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Show custom (non-standard) selections as removable chips */}
+                {profile.interests.filter(i => !INTERESTS.includes(i)).length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Your custom interests</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.interests.filter(i => !INTERESTS.includes(i)).map(i => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-primary-foreground"
+                        >
+                          {i}
+                          <button
+                            type="button"
+                            onClick={() => setProfile(p => ({ ...p, interests: p.interests.filter(x => x !== i) }))}
+                            className="hover:bg-primary-foreground/20 rounded-full p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
