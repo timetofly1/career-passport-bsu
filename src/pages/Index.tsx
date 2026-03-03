@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3, ExternalLink } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 const BSU_LINKS = [
   { label: 'Handshake', url: 'https://bridgew.joinhandshake.com/edu' },
@@ -12,6 +14,15 @@ const BSU_LINKS = [
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { isOnboarded, loading: onboardingLoading } = useOnboarding();
+
+  // Redirect authenticated users away from landing page
+  if (authLoading || onboardingLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" /></div>;
+  }
+  if (user && isOnboarded) return <Navigate to="/dashboard" replace />;
+  if (user && !isOnboarded) return <Navigate to="/onboarding" replace />;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
