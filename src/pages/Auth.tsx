@@ -91,6 +91,7 @@ const Auth = () => {
       const msg = err.message || 'Google sign-in failed. Please try again.';
       setError(msg);
       toast.error(msg);
+    } finally {
       setLoading(false);
     }
   };
