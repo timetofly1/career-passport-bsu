@@ -1,10 +1,11 @@
 import { useOnboarding } from '@/context/OnboardingContext';
-import { useAuth } from '@/context/AuthContext';
+
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, FileText, Map, User, ArrowRight, Settings, Mic, BarChart3, ExternalLink, LogOut } from 'lucide-react';
+import { MessageSquare, FileText, Map, User, ArrowRight, Mic, BarChart3, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import bsuBear from '@/assets/bsu-bear.png';
+import SettingsPanel from '@/components/SettingsPanel';
 
 const features = [
   { icon: MessageSquare, label: 'AI Career Chat', desc: 'Get personalized career advice', path: '/chat', color: 'bg-primary/10 text-primary' },
@@ -27,8 +28,7 @@ const bsuResources = [
 ];
 
 const Dashboard = () => {
-  const { profile, resetOnboarding } = useOnboarding();
-  const { signOut } = useAuth();
+  const { profile } = useOnboarding();
   const navigate = useNavigate();
 
   return (
@@ -43,14 +43,7 @@ const Dashboard = () => {
             <p className="text-[10px] text-muted-foreground">Career Services & Internship Office</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={resetOnboarding} title="Reset onboarding">
-            <Settings className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={signOut} title="Sign out">
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
+        <SettingsPanel />
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
