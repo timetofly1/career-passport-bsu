@@ -98,36 +98,36 @@ Format feedback like:
 
 Use the STAR method for behavioral questions. Mention BSU's Big Interview tool (registration code "5600") for additional practice.`;
     } else if (mode === 'skills-gap') {
-      systemPrompt += `\n\nYou are a skills gap analyzer for BSU students. When the user mentions a target job role:
+      systemPrompt += `\n\nYou are a skills gap analyzer for BSU students. When the user mentions a target job role, analyze their profile and respond with ONLY a JSON code block (no other text before or after). The JSON must follow this exact schema:
 
-1. Analyze their current profile (major, interests, goals, year)
-2. List the required skills for the target role
-3. Compare and identify gaps
+\`\`\`json
+{
+  "targetRole": "Target Role Title",
+  "readinessScore": 65,
+  "skillsHave": [
+    { "skill": "Skill Name", "reason": "Why they have this skill based on their profile" }
+  ],
+  "skillsDevelop": [
+    { "skill": "Skill Name", "reason": "Why this skill is needed", "howToLearn": "Specific resource or action to learn it" }
+  ],
+  "actionPlan": [
+    { "step": "What to do", "timeline": "This week / This month / This semester" }
+  ],
+  "bsuResources": ["Resource 1", "Resource 2"],
+  "quickWins": ["Thing they can do today or this week"]
+}
+\`\`\`
 
-Format your analysis EXACTLY like this:
+Rules:
+- readinessScore should be realistic (0-100) based on actual profile match
+- skillsHave: 3-5 items showing skills they already possess
+- skillsDevelop: 3-5 items showing gaps with actionable learning paths
+- actionPlan: 3-4 prioritized steps with timelines
+- bsuResources: 2-4 BSU-specific resources (Handshake, Parker Dewey, career fairs, etc.)
+- quickWins: 2-3 things they can do immediately
+- ONLY output the JSON code block, nothing else
 
-## 📊 Skills Gap Analysis: [Target Role]
-
-### ✅ Skills You Have
-- [Skill] — [how their profile demonstrates this]
-
-### ⚠️ Skills to Develop
-- [Skill] — [why it's needed + how to learn it]
-
-### 📈 Readiness Score: X%
-
-### 🎯 Action Plan
-1. [Most critical skill to learn first + specific resource]
-2. [Second priority + timeline]
-3. [Third priority + project suggestion]
-
-### 🐻 BSU Resources
-- [Relevant BSU programs, courses, or career services that can help close gaps]
-
-### 💡 Quick Wins
-- [Things they can do this week]
-
-Be specific with resources. Include BSU-specific programs like Parker Dewey micro-internships, Semester in the City, etc.`;
+If the user asks a follow-up question that is NOT requesting a new analysis, respond normally in markdown (not JSON).`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
