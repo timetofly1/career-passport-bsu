@@ -52,6 +52,8 @@ const Resume = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [lastSavedLabel, setLastSavedLabel] = useState('');
 
   // Load saved resumes list on mount
   useEffect(() => {
@@ -66,6 +68,20 @@ const Resume = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, [user, resumeTitle, fullName, email, phone, sections, activeTemplate, currentResumeId]);
+
+  // Update "last saved" label every 10s
+  useEffect(() => {
+    if (!lastSavedAt) { setLastSavedLabel(''); return; }
+    const update = () => {
+      const diffSec = Math.floor((Date.now() - lastSavedAt.getTime()) / 1000);
+      if (diffSec < 5) setLastSavedLabel('Just saved');
+      else if (diffSec < 60) setLastSavedLabel(`Saved ${diffSec}s ago`);
+      else setLastSavedLabel(`Saved ${Math.floor(diffSec / 60)}m ago`);
+    };
+    update();
+    const t = setInterval(update, 10000);
+    return () => clearInterval(t);
+  }, [lastSavedAt]);
 
   const loadResumesList = async () => {
     if (!user) return;
@@ -114,6 +130,7 @@ const Resume = () => {
         setTimeout(() => setJustSaved(false), 2000);
         toast.success('Resume saved!');
       }
+      setLastSavedAt(new Date());
       loadResumesList();
     } catch (err: any) {
       if (!quiet) toast.error(err.message || 'Failed to save');
@@ -280,8 +297,8 @@ const Resume = () => {
               className="border-0 p-0 h-auto font-display font-semibold text-sm bg-transparent focus-visible:ring-0 w-48"
               placeholder="Resume title..."
             />
-            <p className="text-[10px] text-muted-foreground">
-              {currentResumeId ? 'Saved draft' : 'New resume'}
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              {lastSavedLabel || (currentResumeId ? 'Saved draft' : 'New resume')}
             </p>
           </div>
         </div>
