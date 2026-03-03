@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 
 const features = [
   { icon: MessageSquare, label: 'AI Career Chat', desc: 'Get personalized career advice', path: '/chat', color: 'bg-primary/10 text-primary' },
-  { icon: Map, label: 'Career Roadmap', desc: 'Visual career path planning', path: '/chat?mode=roadmap', color: 'bg-emerald/10 text-emerald' },
+  { icon: Map, label: 'Career Roadmap', desc: 'Step-by-step career path planning', path: '/roadmap', color: 'bg-emerald/10 text-emerald' },
   { icon: FileText, label: 'Resume Builder', desc: 'Generate & edit your resume', path: '/resume', color: 'bg-violet/10 text-violet' },
   { icon: Mic, label: 'Interview Prep', desc: 'Mock questions & AI feedback', path: '/interview', color: 'bg-warm/10 text-warm' },
   { icon: BarChart3, label: 'Skills Gap Analyzer', desc: 'Compare skills to job requirements', path: '/skills-gap', color: 'bg-primary/10 text-primary' },

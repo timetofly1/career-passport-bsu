@@ -9,6 +9,7 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import Resume from "./pages/Resume";
+import Roadmap from "./pages/Roadmap";
 import InterviewPrep from "./pages/InterviewPrep";
 import SkillsGap from "./pages/SkillsGap";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/resume" element={<ProtectedRoute><Resume /></ProtectedRoute>} />
+            <Route path="/roadmap" element={<ProtectedRoute><Roadmap /></ProtectedRoute>} />
             <Route path="/interview" element={<ProtectedRoute><InterviewPrep /></ProtectedRoute>} />
             <Route path="/skills-gap" element={<ProtectedRoute><SkillsGap /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

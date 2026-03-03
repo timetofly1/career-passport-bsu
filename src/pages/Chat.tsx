@@ -5,22 +5,22 @@ import { streamChat } from '@/lib/stream-chat';
 import MessageCard from '@/components/MessageCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Map, User, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, User, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
-const modeConfig: Record<string, { label: string; icon: typeof Map; placeholder: string; greeting: string }> = {
-  default: { label: 'Career Chat', icon: Sparkles, placeholder: 'Ask me anything about your career...', greeting: "Hi! I'm your Career Passport AI. Ask me anything about careers, interviews, skills, or planning your professional journey." },
-  roadmap: { label: 'Career Roadmap', icon: Map, placeholder: 'Describe your dream career path...', greeting: "I'll create a personalized career roadmap for you. Tell me about your dream role or career direction, and I'll map out the steps to get there." },
+const modeConfig: Record<string, { label: string; icon: typeof Sparkles; placeholder: string; greeting: string }> = {
+  default: { label: 'Career Chat', icon: Sparkles, placeholder: 'Ask me anything about your career...', greeting: "Hi! I'm your Career Passport AI — your personal career advisor. Ask me about job searching, salary negotiation, networking strategies, industry trends, or any career question you have!" },
   about: { label: 'About You', icon: User, placeholder: 'Tell me about yourself or ask for your profile...', greeting: "I'll analyze your profile and create a detailed career profile card. Just say \"create my profile\" or tell me more about yourself!" },
 };
 
 const quickActions = [
-  { label: 'Create my roadmap', mode: 'roadmap' },
-  { label: 'Build my profile', mode: 'about' },
-  { label: 'Interview tips', mode: 'default' },
-  { label: 'Resume advice', mode: 'resume' },
+  { label: '💼 Job search strategies', mode: 'default' },
+  { label: '💰 Salary negotiation tips', mode: 'default' },
+  { label: '🤝 Networking advice', mode: 'default' },
+  { label: '📧 Cold email templates', mode: 'default' },
+  { label: '🎯 Build my profile', mode: 'about' },
 ];
 
 const Chat = () => {
