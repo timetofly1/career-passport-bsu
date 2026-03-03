@@ -75,8 +75,8 @@ const SearchableSelect = ({
         </label>
       )}
 
-      {/* Selected chips for multi-select */}
-      {multiple && selectedArray.length > 0 && (
+      {/* Selected chips */}
+      {selectedArray.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
           {selectedArray.map(item => (
             <span
@@ -108,7 +108,7 @@ const SearchableSelect = ({
           ref={inputRef}
           type="text"
           className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-          placeholder={!multiple && selectedArray.length > 0 ? selectedArray[0] : placeholder}
+          placeholder={placeholder}
           value={search}
           onChange={e => { setSearch(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
