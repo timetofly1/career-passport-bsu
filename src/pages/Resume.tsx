@@ -8,6 +8,7 @@ import { ArrowLeft, Download, Plus, Trash2, Sparkles, Loader2, Wand2 } from 'luc
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import ResumePreview, { templates, TemplateId } from '@/components/ResumePreview';
 
 interface ResumeSection {
   id: string;
@@ -32,6 +33,7 @@ const Resume = () => {
   const [sections, setSections] = useState<ResumeSection[]>(defaultSections);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingSection, setGeneratingSection] = useState<string | null>(null);
+  const [activeTemplate, setActiveTemplate] = useState<TemplateId>('classic');
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const updateSection = (id: string, field: 'title' | 'content', value: string) => {
@@ -46,11 +48,8 @@ const Resume = () => {
     setSections(prev => prev.filter(s => s.id !== id));
   };
 
-  // Gather context from all sections for AI to reference
   const gatherContext = () => {
-    const filledSections = sections.filter(s => s.content.trim());
-    const sectionSummary = filledSections.map(s => `${s.title}:\n${s.content}`).join('\n\n');
-    return sectionSummary;
+    return sections.filter(s => s.content.trim()).map(s => `${s.title}:\n${s.content}`).join('\n\n');
   };
 
   const generateSectionContent = async (sectionId: string) => {
@@ -61,7 +60,6 @@ const Resume = () => {
     try {
       const existingContext = gatherContext();
       const existingContent = section.content.trim();
-
       let prompt = '';
       const sectionTitle = section.title.toLowerCase();
 
@@ -83,34 +81,20 @@ const Resume = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('career-chat', {
-        body: {
-          messages: [{ role: 'user', content: prompt }],
-          mode: 'resume',
-          profile,
-        },
+        body: { messages: [{ role: 'user', content: prompt }], mode: 'resume', profile },
       });
 
       if (error) throw error;
-
       const text = typeof data === 'string' ? data : (data?.content || data?.text || JSON.stringify(data));
-      // Clean up any markers
-      const cleaned = text.replace(/---SECTION---/g, '').trim();
-      
-      if (existingContent) {
-        // If user had content, replace with enhanced version
-        updateSection(sectionId, 'content', cleaned);
-      } else {
-        updateSection(sectionId, 'content', cleaned);
-      }
+      updateSection(sectionId, 'content', text.replace(/---SECTION---/g, '').trim());
       toast.success(`${section.title} content generated!`);
-    } catch (err) {
-      // Fallback content
+    } catch {
       const samples: Record<string, string> = {
-        'Professional Summary': `Motivated ${profile.year} student majoring in ${profile.major} at Bridgewater State University with a passion for ${profile.interests.slice(0, 2).join(' and ')}. Seeking opportunities in ${profile.goals[0]?.toLowerCase() || 'professional growth'}. Strong analytical and communication skills with hands-on project experience.`,
-        'Education': `Bachelor of Science in ${profile.major}\nBridgewater State University | Expected Graduation: 2026\n• GPA: 3.X/4.0\n• Relevant Coursework: [Add your courses]\n• Dean's List: [Add semesters]`,
-        'Experience': `[Job Title] | [Company Name]\n[Month Year] – Present\n• Collaborated with cross-functional teams to deliver key results\n• Implemented process improvements resulting in measurable outcomes\n• Managed responsibilities across multiple projects`,
-        'Skills': `Technical: [Programming languages, tools, frameworks]\nSoft Skills: Communication, Leadership, Problem-Solving, Teamwork\nTools: Microsoft Office, Google Suite\nLanguages: English (Native)`,
-        'Projects': `[Project Name] | [Technologies Used]\n• Developed application serving [purpose]\n• Implemented key features using modern technologies\n• Achieved measurable results`,
+        'Professional Summary': `Motivated ${profile.year} student majoring in ${profile.major} at Bridgewater State University with a passion for ${profile.interests.slice(0, 2).join(' and ')}. Seeking opportunities in ${profile.goals[0]?.toLowerCase() || 'professional growth'}.`,
+        'Education': `Bachelor of Science in ${profile.major}\nBridgewater State University | Expected Graduation: 2026\n• GPA: 3.X/4.0\n• Relevant Coursework: [Add your courses]`,
+        'Experience': `[Job Title] | [Company Name]\n[Month Year] – Present\n• Collaborated with cross-functional teams to deliver key results\n• Implemented process improvements resulting in measurable outcomes`,
+        'Skills': `Technical: [Programming languages, tools, frameworks]\nSoft Skills: Communication, Leadership, Problem-Solving, Teamwork\nTools: Microsoft Office, Google Suite`,
+        'Projects': `[Project Name] | [Technologies Used]\n• Developed application serving [purpose]\n• Implemented key features using modern technologies`,
       };
       const fallback = samples[section.title] || `[Add your ${section.title.toLowerCase()} content here]`;
       if (!section.content) updateSection(sectionId, 'content', fallback);
@@ -131,14 +115,13 @@ const Resume = () => {
     if (!resumeRef.current) return;
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const opt = {
+      await (html2pdf() as any).set({
         margin: [0.5, 0.6, 0.5, 0.6] as [number, number, number, number],
         filename: `${fullName.replace(/\s+/g, '_')}_Resume.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const },
-      };
-      await (html2pdf() as any).set(opt).from(resumeRef.current).save();
+      }).from(resumeRef.current).save();
       toast.success('Resume downloaded!');
     } catch {
       toast.error('Download failed. Please try again.');
@@ -190,7 +173,6 @@ const Resume = () => {
                 transition={{ delay: i * 0.05 }}
                 className="rounded-xl border border-border bg-card overflow-hidden"
               >
-                {/* Section header */}
                 <div className="flex items-center justify-between px-4 pt-3 pb-1">
                   <Input
                     value={section.title}
@@ -199,37 +181,20 @@ const Resume = () => {
                   />
                   <div className="flex items-center gap-1">
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-7 gap-1.5 text-xs transition-all ${
-                        isSectionGenerating
-                          ? 'text-primary'
-                          : isTyping
-                          ? 'text-primary opacity-100'
-                          : hasContent
-                          ? 'text-muted-foreground opacity-60 hover:opacity-100'
-                          : 'text-primary'
-                      }`}
+                      variant="ghost" size="sm"
+                      className={`h-7 gap-1.5 text-xs transition-all ${isSectionGenerating ? 'text-primary' : isTyping ? 'text-primary opacity-100' : hasContent ? 'text-muted-foreground opacity-60 hover:opacity-100' : 'text-primary'}`}
                       onClick={() => generateSectionContent(section.id)}
                       disabled={isSectionGenerating || !!generatingSection}
                       title={hasContent ? 'Enhance with AI' : 'Generate with AI'}
                     >
-                      {isSectionGenerating ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Wand2 className="w-3 h-3" />
-                      )}
-                      <span className="hidden sm:inline">
-                        {isSectionGenerating ? 'Generating...' : hasContent ? 'Enhance' : 'AI Fill'}
-                      </span>
+                      {isSectionGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                      <span className="hidden sm:inline">{isSectionGenerating ? 'Generating...' : hasContent ? 'Enhance' : 'AI Fill'}</span>
                     </Button>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSection(section.id)}>
                       <Trash2 className="w-3 h-3 text-muted-foreground" />
                     </Button>
                   </div>
                 </div>
-
-                {/* Content area */}
                 <div className="px-4 pb-3 relative">
                   <Textarea
                     value={section.content}
@@ -263,33 +228,39 @@ const Resume = () => {
 
         {/* Preview */}
         <div className="space-y-4">
-          <h2 className="font-display font-semibold text-lg">Preview</h2>
-          <div className="sticky top-20">
-            <div
-              ref={resumeRef}
-              className="bg-white text-black p-8 rounded-xl border shadow-lg min-h-[700px]"
-              style={{ fontFamily: 'Georgia, serif', fontSize: '11px', lineHeight: '1.5' }}
-            >
-              <div className="text-center mb-4 border-b pb-3" style={{ borderColor: '#333' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>{fullName || 'Your Name'}</h1>
-                <p style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
-                  {[email, phone].filter(Boolean).join(' | ') || 'email@example.com | (555) 123-4567'}
-                </p>
-              </div>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-semibold text-lg">Preview</h2>
+          </div>
 
-              {sections.map(section => (
-                section.content && (
-                  <div key={section.id} className="mb-3">
-                    <h2 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px', borderBottom: '1px solid #333', paddingBottom: '2px', marginBottom: '6px' }}>
-                      {section.title}
-                    </h2>
-                    <div style={{ whiteSpace: 'pre-wrap', fontSize: '11px', color: '#333' }}>
-                      {section.content}
-                    </div>
-                  </div>
-                )
-              ))}
-            </div>
+          {/* Template Switcher */}
+          <div className="flex gap-2">
+            {templates.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTemplate(t.id)}
+                className={`flex-1 p-3 rounded-xl border text-left transition-all ${
+                  activeTemplate === t.id
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                    : 'border-border bg-card hover:border-primary/30'
+                }`}
+              >
+                <span className={`text-xs font-display font-semibold block ${activeTemplate === t.id ? 'text-primary' : 'text-foreground'}`}>
+                  {t.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{t.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="sticky top-20">
+            <ResumePreview
+              ref={resumeRef}
+              template={activeTemplate}
+              fullName={fullName}
+              email={email}
+              phone={phone}
+              sections={sections}
+            />
           </div>
         </div>
       </div>
