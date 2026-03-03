@@ -1,7 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3 } from 'lucide-react';
+import { ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3, ExternalLink } from 'lucide-react';
+
+const BSU_LINKS = [
+  { label: 'Handshake', url: 'https://bridgew.joinhandshake.com/edu' },
+  { label: 'Schedule Appointment', url: 'https://bridgew.joinhandshake.com/stu/appointments' },
+  { label: 'Academics & Majors', url: 'https://www.bridgew.edu/academics' },
+  { label: 'Career Services', url: 'https://careers.bridgew.edu/' },
+];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -9,12 +16,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
-      <nav className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-primary-foreground" />
+      <nav className="px-6 py-4 flex items-center justify-between border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-display font-bold text-sm">BSU</span>
           </div>
-          <span className="font-display font-bold">Career Passport</span>
+          <div>
+            <span className="font-display font-bold text-sm">Career Passport</span>
+            <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
+          </div>
         </div>
         <Button size="sm" onClick={() => navigate('/onboarding')} className="gap-2">
           Get Started <ArrowRight className="w-3 h-3" />
@@ -26,14 +36,14 @@ const Index = () => {
         <div className="max-w-2xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium mb-6">
-              <Sparkles className="w-3 h-3" /> AI-Powered Career Navigation
+              🐻 Bridgewater State University · Career Services & Internships
             </div>
             <h1 className="text-5xl md:text-6xl font-display font-bold leading-tight mb-4">
               Your career journey,{' '}
-              <span className="text-primary">intelligently mapped</span>
+              <span className="text-primary">powered by BSU</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Get personalized career roadmaps, AI-powered coaching, and a professional resume builder — all tailored to your unique background.
+              AI-powered career coaching built for BSU Bears. Get personalized roadmaps, mock interviews, resume help, and skills analysis — all connected to BSU Career Services resources.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button size="lg" onClick={() => navigate('/onboarding')} className="gap-2 text-base px-8">
@@ -62,11 +72,31 @@ const Index = () => {
               </div>
             ))}
           </motion.div>
+
+          {/* BSU Quick Links */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="mt-8 flex flex-wrap justify-center gap-2"
+          >
+            {BSU_LINKS.map(l => (
+              <a
+                key={l.label}
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-primary/20 text-primary hover:bg-accent transition-colors"
+              >
+                {l.label} <ExternalLink className="w-3 h-3" />
+              </a>
+            ))}
+          </motion.div>
         </div>
       </main>
 
       <footer className="px-6 py-4 text-center text-xs text-muted-foreground">
-        Built with AI · Career Passport © {new Date().getFullYear()}
+        Bridgewater State University · Career Services & Internship Office · Career Passport © {new Date().getFullYear()}
       </footer>
     </div>
   );
