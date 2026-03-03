@@ -26,7 +26,7 @@ const Index = () => {
             <p className="text-[10px] text-muted-foreground leading-none">Career Services & Internship Office</p>
           </div>
         </div>
-        <Button size="sm" onClick={() => navigate('/onboarding')} className="gap-2">
+        <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
           Get Started <ArrowRight className="w-3 h-3" />
         </Button>
       </nav>
@@ -46,7 +46,7 @@ const Index = () => {
               AI-powered career coaching built for BSU Bears. Get personalized roadmaps, mock interviews, resume help, and skills analysis — all connected to BSU Career Services resources.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" onClick={() => navigate('/onboarding')} className="gap-2 text-base px-8">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 text-base px-8">
                 Start Your Passport <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
