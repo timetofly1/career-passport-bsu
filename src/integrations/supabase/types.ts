@@ -22,6 +22,7 @@ export type Database = {
           interests: string[]
           is_onboarded: boolean
           major: string
+          minor: string[]
           name: string
           updated_at: string
           user_id: string
@@ -34,6 +35,7 @@ export type Database = {
           interests?: string[]
           is_onboarded?: boolean
           major?: string
+          minor?: string[]
           name?: string
           updated_at?: string
           user_id: string
@@ -46,6 +48,7 @@ export type Database = {
           interests?: string[]
           is_onboarded?: boolean
           major?: string
+          minor?: string[]
           name?: string
           updated_at?: string
           user_id?: string

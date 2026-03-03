@@ -51,7 +51,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .single() as { data: any; error: any };
 
       if (data && !error) {
         setProfile({

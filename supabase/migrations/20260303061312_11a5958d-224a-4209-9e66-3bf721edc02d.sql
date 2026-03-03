@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN minor text[] NOT NULL DEFAULT '{}'::text[];
