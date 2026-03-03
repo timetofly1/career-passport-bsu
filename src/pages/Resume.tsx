@@ -227,12 +227,46 @@ const Resume = () => {
         prompt = `Generate resume content for "${section.title}" for a ${profile.year} ${profile.major} student. ${existingContent ? `Enhance: "${existingContent}"` : ''} Return ONLY content.`;
       }
 
-      const { data, error } = await supabase.functions.invoke('career-chat', {
-        body: { messages: [{ role: 'user', content: prompt }], mode: 'resume', profile },
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/career-chat`;
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], mode: 'resume', profile }),
       });
-      if (error) throw error;
-      const text = typeof data === 'string' ? data : (data?.content || data?.text || JSON.stringify(data));
-      updateSection(sectionId, 'content', text.replace(/---SECTION---/g, '').trim());
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(errData.error || `Error: ${resp.status}`);
+      }
+      // Parse SSE stream and collect all content
+      let fullText = '';
+      if (resp.body) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buf.indexOf('\n')) !== -1) {
+            let line = buf.slice(0, idx);
+            buf = buf.slice(idx + 1);
+            if (line.endsWith('\r')) line = line.slice(0, -1);
+            if (!line.startsWith('data: ')) continue;
+            const json = line.slice(6).trim();
+            if (json === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(json);
+              const c = parsed.choices?.[0]?.delta?.content;
+              if (c) fullText += c;
+            } catch { /* partial */ }
+          }
+        }
+      }
+      updateSection(sectionId, 'content', fullText.replace(/---SECTION---/g, '').trim());
       toast.success(`${section.title} generated!`);
     } catch {
       const samples: Record<string, string> = {
