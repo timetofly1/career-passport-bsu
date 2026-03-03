@@ -6,6 +6,8 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Sparkles, GraduationCap, Target, Heart } from 'lucide-react';
+import SearchableSelect from '@/components/SearchableSelect';
+import { BSU_MAJORS, BSU_MINORS } from '@/data/bsu-programs';
 
 const GOALS = ['Get an Internship', 'Land a Full-Time Job', 'Build a Portfolio', 'Network with Professionals', 'Explore Career Options', 'Prepare for Graduate School'];
 const INTERESTS = [
@@ -131,13 +133,24 @@ const Onboarding = () => {
                   <h1 className="text-3xl font-display font-bold mb-2">Tell us about your studies</h1>
                   <p className="text-muted-foreground">This helps us tailor career advice to your BSU background.</p>
                 </div>
-                <Input
-                  placeholder="Your major (e.g., Computer Science)"
-                  value={profile.major}
-                  onChange={e => setProfile(p => ({ ...p, major: e.target.value }))}
-                  className="h-12 text-base"
-                  autoFocus
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SearchableSelect
+                    label="Major"
+                    options={BSU_MAJORS}
+                    value={profile.major}
+                    onChange={v => setProfile(p => ({ ...p, major: v as string }))}
+                    placeholder="Search majors…"
+                    required
+                  />
+                  <SearchableSelect
+                    label="Minor"
+                    options={BSU_MINORS}
+                    value={profile.minor || []}
+                    onChange={v => setProfile(p => ({ ...p, minor: v as string[] }))}
+                    placeholder="Search minors…"
+                    multiple
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   {YEARS.map(y => (
                     <button

@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 export interface UserProfile {
   name: string;
   major: string;
+  minor: string[];
   year: string;
   goals: string[];
   interests: string[];
@@ -19,7 +20,7 @@ interface OnboardingContextType {
   loading: boolean;
 }
 
-const defaultProfile: UserProfile = { name: '', major: '', year: '', goals: [], interests: [] };
+const defaultProfile: UserProfile = { name: '', major: '', minor: [], year: '', goals: [], interests: [] };
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
@@ -56,6 +57,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
         setProfile({
           name: data.name || '',
           major: data.major || '',
+          minor: data.minor || [],
           year: data.year || '',
           goals: data.goals || [],
           interests: data.interests || [],
@@ -75,6 +77,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
       .update({
         name: profile.name,
         major: profile.major,
+        minor: profile.minor,
         year: profile.year,
         goals: profile.goals,
         interests: profile.interests,
@@ -93,6 +96,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
       .from('profiles')
       .update({
         major: '',
+        minor: [],
         year: '',
         goals: [],
         interests: [],
@@ -101,7 +105,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
       .eq('user_id', user.id);
 
     setIsOnboarded(false);
-    setProfile(p => ({ ...p, major: '', year: '', goals: [], interests: [] }));
+    setProfile(p => ({ ...p, major: '', minor: [], year: '', goals: [], interests: [] }));
   };
 
   return (
