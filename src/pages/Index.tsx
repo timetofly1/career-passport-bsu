@@ -141,6 +141,45 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Stats/Trust Bar */}
+      <section className="bg-accent w-full">
+        <div className="max-w-4xl mx-auto py-12 px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="md:border-r md:border-primary/15">
+              <p className="text-2xl font-bold text-foreground">5 AI-Powered Tools</p>
+              <p className="text-sm text-muted-foreground mt-1">Built for BSU students</p>
+            </div>
+            <div className="md:border-r md:border-primary/15">
+              <p className="text-2xl font-bold text-foreground">100% Free</p>
+              <p className="text-sm text-muted-foreground mt-1">For all BSU Bears</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">Connected to BSU</p>
+              <p className="text-sm text-muted-foreground mt-1">Handshake, Big Interview & more</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="bg-background py-16 px-6 text-center">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-5xl">🐻</p>
+          <h2 className="text-3xl font-display font-bold mt-4">Ready to launch your career?</h2>
+          <p className="text-muted-foreground max-w-lg mx-auto mt-3">
+            Join BSU Bears already using Career Passport to land internships, build resumes, and prepare for interviews.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/auth')}
+            className="gap-2 text-lg px-8 py-3 rounded-full mt-6"
+          >
+            Get Started — It's Free <ArrowRight className="w-4 h-4" />
+          </Button>
+          <p className="text-xs text-muted-foreground mt-3">Sign in with your Google account in seconds</p>
+        </div>
+      </section>
+
       {/* BSU Quick Links */}
       <section className="px-6 py-12">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2">
