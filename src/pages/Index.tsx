@@ -143,7 +143,7 @@ const Index = () => {
       </nav>
 
       {/* Hero */}
-      <section className="flex-1 flex items-center justify-center px-6 py-16">
+      <section className="flex-1 flex items-center justify-center px-6 py-16" style={{ background: 'radial-gradient(ellipse at center, hsl(348 83% 97%) 0%, transparent 70%)' }}>
         <div className="max-w-2xl text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium mb-6">
             🐻 Bridgewater State University · Career Services & Internships
@@ -180,6 +180,7 @@ const Index = () => {
             {FEATURES.slice(0, 3).map(f => (
               <div
                 key={f.label}
+                aria-label={f.label}
                 className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200"
               >
                 <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
@@ -194,6 +195,7 @@ const Index = () => {
             {FEATURES.slice(3).map(f => (
               <div
                 key={f.label}
+                aria-label={f.label}
                 className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200"
               >
                 <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
@@ -230,19 +232,22 @@ const Index = () => {
       </section>
 
       {/* BSU Quick Links */}
-      <section className="px-6 py-12">
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2">
-          {BSU_LINKS.map(l => (
-            <a
-              key={l.label}
-              href={l.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-primary/20 text-primary hover:bg-accent transition-colors"
-            >
-              {l.label} <ExternalLink className="w-3 h-3" />
-            </a>
-          ))}
+      <section className="px-6 py-16">
+        <div className="max-w-5xl mx-auto">
+          <h3 className="text-lg font-semibold text-center mb-4">BSU Career Services Resources</h3>
+          <div className="flex flex-wrap justify-center gap-2">
+            {BSU_LINKS.map(l => (
+              <a
+                key={l.label}
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-primary/20 text-primary hover:bg-accent hover:border-primary/50 transition-colors"
+              >
+                {l.label} <ExternalLink className="w-3 h-3" />
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 
