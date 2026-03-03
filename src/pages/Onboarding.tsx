@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,26 @@ const Onboarding = () => {
 
   const stepIcons = [Sparkles, GraduationCap, Target, Heart];
   const StepIcon = stepIcons[step];
+
+  const advance = useCallback(() => {
+    if (!canProceed[step]) return;
+    if (step < totalSteps - 1) setStep(s => s + 1);
+    else handleFinish();
+  }, [step, canProceed]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'BUTTON' || tag === 'BODY') {
+          e.preventDefault();
+          advance();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [advance]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -183,6 +203,10 @@ const Onboarding = () => {
             </Button>
           )}
         </div>
+
+        <p className="text-[10px] text-muted-foreground/50 text-center mt-4 select-none">
+          Press <kbd className="px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Enter</kbd> to continue
+        </p>
       </div>
     </div>
   );
