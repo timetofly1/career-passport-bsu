@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 import { toast } from '@/hooks/use-toast';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 
@@ -16,12 +17,19 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isOnboarded, loading: onboardingLoading } = useOnboarding();
 
-  if (user) {
-    navigate('/dashboard');
-    return null;
+  // Redirect authenticated users properly
+  if (authLoading || onboardingLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
   }
+  if (user && isOnboarded) return <Navigate to="/dashboard" replace />;
+  if (user && !isOnboarded) return <Navigate to="/onboarding" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
