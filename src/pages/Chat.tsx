@@ -6,6 +6,7 @@ import MessageCard from '@/components/MessageCard';
 import { Button } from '@/components/ui/button';
 import ChatInput from '@/components/ChatInput';
 import { ArrowLeft, User, Sparkles, Loader2 } from 'lucide-react';
+import bsuBear from '@/assets/bsu-bear.png';
 import { toast } from 'sonner';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
@@ -86,8 +87,8 @@ const Chat = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <div className="p-2 rounded-xl bg-accent">
-          <ModeIcon className="w-4 h-4 text-accent-foreground" />
+        <div className="w-9 h-9 rounded-xl overflow-hidden">
+          <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
         </div>
         <div>
           <h1 className="font-display font-semibold text-sm">{config.label}</h1>
@@ -126,10 +127,11 @@ const Chat = () => {
 
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            <div className="w-8 h-8 rounded-full overflow-hidden">
+              <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
             </div>
             <div className="flex items-center">
+              <Loader2 className="w-3 h-3 animate-spin text-primary mr-1" />
               <span className="text-sm text-muted-foreground">Thinking...</span>
             </div>
           </div>
