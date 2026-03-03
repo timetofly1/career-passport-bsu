@@ -23,19 +23,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set up listener FIRST so we never miss an event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
+    // Then check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Reconciliation: after OAuth redirect, tokens may persist with a slight delay.
+    // Re-check session after a short window to catch late hydration.
+    const reconcileTimer = setTimeout(async () => {
+      try {
+        const { data: { session: freshSession } } = await supabase.auth.getSession();
+        if (freshSession && !session) {
+          setSession(freshSession);
+          setUser(freshSession.user);
+          setLoading(false);
+        }
+      } catch {
+        // ignore
+      }
+    }, 1500);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(reconcileTimer);
+    };
   }, []);
 
   const signOut = async () => {
