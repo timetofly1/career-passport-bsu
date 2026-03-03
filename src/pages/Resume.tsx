@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Download, Plus, Trash2, Sparkles, Loader2, Wand2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, Download, Plus, Trash2, Sparkles, Loader2, Wand2, Save, FolderOpen, FilePlus, Clock, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ResumePreview, { templates, TemplateId } from '@/components/ResumePreview';
@@ -14,6 +15,12 @@ interface ResumeSection {
   id: string;
   title: string;
   content: string;
+}
+
+interface SavedResume {
+  id: string;
+  title: string;
+  updated_at: string;
 }
 
 const defaultSections: ResumeSection[] = [
@@ -26,6 +33,7 @@ const defaultSections: ResumeSection[] = [
 
 const Resume = () => {
   const { profile } = useOnboarding();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile.name);
   const [email, setEmail] = useState('');
@@ -35,6 +43,117 @@ const Resume = () => {
   const [generatingSection, setGeneratingSection] = useState<string | null>(null);
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>('classic');
   const resumeRef = useRef<HTMLDivElement>(null);
+
+  // Save/Load state
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
+  const [resumeTitle, setResumeTitle] = useState('Untitled Resume');
+  const [savedResumes, setSavedResumes] = useState<SavedResume[]>([]);
+  const [showSavedPanel, setShowSavedPanel] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+
+  // Load saved resumes list on mount
+  useEffect(() => {
+    if (user) loadResumesList();
+  }, [user]);
+
+  const loadResumesList = async () => {
+    if (!user) return;
+    setIsLoadingResumes(true);
+    const { data } = await supabase
+      .from('resumes')
+      .select('id, title, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+    if (data) setSavedResumes(data);
+    setIsLoadingResumes(false);
+  };
+
+  const saveResume = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        title: resumeTitle,
+        full_name: fullName,
+        email,
+        phone,
+        template: activeTemplate,
+        sections: sections as any,
+      };
+
+      if (currentResumeId) {
+        const { error } = await supabase
+          .from('resumes')
+          .update(payload)
+          .eq('id', currentResumeId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('resumes')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        if (data) setCurrentResumeId(data.id);
+      }
+
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+      toast.success('Resume saved!');
+      loadResumesList();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save');
+    }
+    setIsSaving(false);
+  };
+
+  const loadResume = async (id: string) => {
+    const { data, error } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      toast.error('Failed to load resume');
+      return;
+    }
+
+    setCurrentResumeId(data.id);
+    setResumeTitle(data.title);
+    setFullName(data.full_name);
+    setEmail(data.email);
+    setPhone(data.phone);
+    setActiveTemplate((data.template as TemplateId) || 'classic');
+    setSections(data.sections as unknown as ResumeSection[]);
+    setShowSavedPanel(false);
+    toast.success(`Loaded "${data.title}"`);
+  };
+
+  const deleteResume = async (id: string) => {
+    await supabase.from('resumes').delete().eq('id', id);
+    if (currentResumeId === id) {
+      setCurrentResumeId(null);
+      setResumeTitle('Untitled Resume');
+    }
+    toast.success('Resume deleted');
+    loadResumesList();
+  };
+
+  const startNewResume = () => {
+    setCurrentResumeId(null);
+    setResumeTitle('Untitled Resume');
+    setFullName(profile.name);
+    setEmail('');
+    setPhone('');
+    setSections(defaultSections);
+    setActiveTemplate('classic');
+    setShowSavedPanel(false);
+    toast.success('Started new resume');
+  };
 
   const updateSection = (id: string, field: 'title' | 'content', value: string) => {
     setSections(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
@@ -48,66 +167,59 @@ const Resume = () => {
     setSections(prev => prev.filter(s => s.id !== id));
   };
 
-  const gatherContext = () => {
-    return sections.filter(s => s.content.trim()).map(s => `${s.title}:\n${s.content}`).join('\n\n');
-  };
+  const gatherContext = () => sections.filter(s => s.content.trim()).map(s => `${s.title}:\n${s.content}`).join('\n\n');
 
   const generateSectionContent = async (sectionId: string) => {
     const section = sections.find(s => s.id === sectionId);
     if (!section) return;
-
     setGeneratingSection(sectionId);
     try {
       const existingContext = gatherContext();
       const existingContent = section.content.trim();
       let prompt = '';
-      const sectionTitle = section.title.toLowerCase();
+      const t = section.title.toLowerCase();
 
-      if (sectionTitle.includes('summary') || sectionTitle.includes('objective')) {
-        prompt = `Write a concise, compelling professional summary (3-4 sentences) for a ${profile.year} ${profile.major} student at Bridgewater State University. Their career goals include: ${profile.goals.join(', ')}. Their interests are: ${profile.interests.join(', ')}. ${existingContent ? `They've already written: "${existingContent}" — enhance and polish this.` : ''} ${existingContext ? `Context from their resume:\n${existingContext}` : ''}. Return ONLY the summary text, no labels or headers.`;
-      } else if (sectionTitle.includes('education')) {
-        prompt = `Write education section content for a ${profile.year} student majoring in ${profile.major} at Bridgewater State University. Include the degree, university, expected graduation, and placeholder bullets for GPA and relevant coursework. ${existingContent ? `Enhance what they've written: "${existingContent}"` : ''} Return ONLY the content, no labels.`;
-      } else if (sectionTitle.includes('experience')) {
-        prompt = `Generate professional experience bullet points. ${existingContent ? `The user has started writing: "${existingContent}". If it contains a job title or company, generate 3-4 strong bullet points using action verbs and quantifiable achievements for that role. Keep what they wrote and add polished bullets beneath each role.` : `Create a template with 2 example roles relevant to a ${profile.major} student interested in ${profile.interests.slice(0, 3).join(', ')}. Each with 3 bullets using action verbs.`} ${existingContext ? `Context:\n${existingContext}` : ''} Return ONLY the content.`;
-      } else if (sectionTitle.includes('skill')) {
-        const experienceSection = sections.find(s => s.title.toLowerCase().includes('experience'));
-        const projectSection = sections.find(s => s.title.toLowerCase().includes('project'));
-        const relevantContent = [experienceSection?.content, projectSection?.content].filter(Boolean).join('\n');
-        prompt = `Generate a well-organized skills section for a ${profile.major} student. ${relevantContent ? `Based on their experience and projects:\n"${relevantContent}"\nExtract and expand relevant skills.` : `Generate skills relevant to ${profile.interests.slice(0, 4).join(', ')}.`} ${existingContent ? `They've already listed: "${existingContent}". Add to and organize these.` : ''} Organize into categories like Technical Skills, Soft Skills, Tools & Technologies. Return ONLY the content.`;
-      } else if (sectionTitle.includes('project')) {
-        prompt = `Generate project descriptions for a ${profile.major} student. ${existingContent ? `They've written: "${existingContent}". If it contains a project name or description, enhance it with 2-3 bullet points highlighting technologies used and outcomes.` : `Create 2 example project entries relevant to ${profile.interests.slice(0, 3).join(', ')} with technologies and bullet points.`} ${existingContext ? `Context:\n${existingContext}` : ''} Return ONLY the content.`;
+      if (t.includes('summary') || t.includes('objective')) {
+        prompt = `Write a concise, compelling professional summary (3-4 sentences) for a ${profile.year} ${profile.major} student at Bridgewater State University. Goals: ${profile.goals.join(', ')}. Interests: ${profile.interests.join(', ')}. ${existingContent ? `Enhance: "${existingContent}"` : ''} ${existingContext ? `Context:\n${existingContext}` : ''} Return ONLY the summary text.`;
+      } else if (t.includes('education')) {
+        prompt = `Write education content for a ${profile.year} ${profile.major} student at Bridgewater State University. ${existingContent ? `Enhance: "${existingContent}"` : ''} Return ONLY the content.`;
+      } else if (t.includes('experience')) {
+        prompt = `Generate experience bullet points. ${existingContent ? `User wrote: "${existingContent}". Generate 3-4 strong bullets for that role.` : `Create 2 example roles for a ${profile.major} student.`} ${existingContext ? `Context:\n${existingContext}` : ''} Return ONLY content.`;
+      } else if (t.includes('skill')) {
+        const exp = sections.find(s => s.title.toLowerCase().includes('experience'));
+        const proj = sections.find(s => s.title.toLowerCase().includes('project'));
+        const ctx = [exp?.content, proj?.content].filter(Boolean).join('\n');
+        prompt = `Generate organized skills for a ${profile.major} student. ${ctx ? `Based on:\n"${ctx}"` : `Relevant to ${profile.interests.slice(0, 4).join(', ')}.`} ${existingContent ? `Already listed: "${existingContent}". Add to these.` : ''} Return ONLY content.`;
+      } else if (t.includes('project')) {
+        prompt = `Generate project descriptions for a ${profile.major} student. ${existingContent ? `Enhance: "${existingContent}"` : `Create 2 examples for ${profile.interests.slice(0, 3).join(', ')}.`} Return ONLY content.`;
       } else {
-        prompt = `Generate professional resume content for a section titled "${section.title}" for a ${profile.year} ${profile.major} student. ${existingContent ? `Enhance: "${existingContent}"` : 'Create compelling content.'} Return ONLY the content.`;
+        prompt = `Generate resume content for "${section.title}" for a ${profile.year} ${profile.major} student. ${existingContent ? `Enhance: "${existingContent}"` : ''} Return ONLY content.`;
       }
 
       const { data, error } = await supabase.functions.invoke('career-chat', {
         body: { messages: [{ role: 'user', content: prompt }], mode: 'resume', profile },
       });
-
       if (error) throw error;
       const text = typeof data === 'string' ? data : (data?.content || data?.text || JSON.stringify(data));
       updateSection(sectionId, 'content', text.replace(/---SECTION---/g, '').trim());
-      toast.success(`${section.title} content generated!`);
+      toast.success(`${section.title} generated!`);
     } catch {
       const samples: Record<string, string> = {
-        'Professional Summary': `Motivated ${profile.year} student majoring in ${profile.major} at Bridgewater State University with a passion for ${profile.interests.slice(0, 2).join(' and ')}. Seeking opportunities in ${profile.goals[0]?.toLowerCase() || 'professional growth'}.`,
-        'Education': `Bachelor of Science in ${profile.major}\nBridgewater State University | Expected Graduation: 2026\n• GPA: 3.X/4.0\n• Relevant Coursework: [Add your courses]`,
-        'Experience': `[Job Title] | [Company Name]\n[Month Year] – Present\n• Collaborated with cross-functional teams to deliver key results\n• Implemented process improvements resulting in measurable outcomes`,
-        'Skills': `Technical: [Programming languages, tools, frameworks]\nSoft Skills: Communication, Leadership, Problem-Solving, Teamwork\nTools: Microsoft Office, Google Suite`,
-        'Projects': `[Project Name] | [Technologies Used]\n• Developed application serving [purpose]\n• Implemented key features using modern technologies`,
+        'Professional Summary': `Motivated ${profile.year} student majoring in ${profile.major} at BSU.`,
+        'Education': `BS ${profile.major}\nBridgewater State University | Expected 2026`,
+        'Experience': `[Job Title] | [Company]\n• Key achievement`,
+        'Skills': `Technical: [Skills]\nSoft Skills: Communication, Leadership`,
+        'Projects': `[Project] | [Tech]\n• Built [feature]`,
       };
-      const fallback = samples[section.title] || `[Add your ${section.title.toLowerCase()} content here]`;
-      if (!section.content) updateSection(sectionId, 'content', fallback);
-      toast.success('Sample content generated — customize with your details!');
+      if (!section.content) updateSection(sectionId, 'content', samples[section.title] || '');
+      toast.success('Sample generated — customize it!');
     }
     setGeneratingSection(null);
   };
 
   const generateAll = async () => {
     setIsGenerating(true);
-    for (const section of sections) {
-      await generateSectionContent(section.id);
-    }
+    for (const s of sections) await generateSectionContent(s.id);
     setIsGenerating(false);
   };
 
@@ -124,8 +236,20 @@ const Resume = () => {
       }).from(resumeRef.current).save();
       toast.success('Resume downloaded!');
     } catch {
-      toast.error('Download failed. Please try again.');
+      toast.error('Download failed.');
     }
+  };
+
+  const formatDate = (d: string) => {
+    const date = new Date(d);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -135,18 +259,96 @@ const Resume = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="font-display font-semibold">Resume Builder</h1>
+          <div>
+            <Input
+              value={resumeTitle}
+              onChange={e => setResumeTitle(e.target.value)}
+              className="border-0 p-0 h-auto font-display font-semibold text-sm bg-transparent focus-visible:ring-0 w-48"
+              placeholder="Resume title..."
+            />
+            <p className="text-[10px] text-muted-foreground">
+              {currentResumeId ? 'Saved draft' : 'New resume'}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowSavedPanel(!showSavedPanel)} className="gap-2">
+            <FolderOpen className="w-3 h-3" />
+            <span className="hidden sm:inline">My Resumes</span>
+            {savedResumes.length > 0 && (
+              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{savedResumes.length}</span>
+            )}
+          </Button>
+          <Button variant="outline" size="sm" onClick={saveResume} disabled={isSaving} className="gap-2">
+            {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : justSaved ? <Check className="w-3 h-3 text-emerald" /> : <Save className="w-3 h-3" />}
+            <span className="hidden sm:inline">{justSaved ? 'Saved!' : 'Save'}</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={generateAll} disabled={isGenerating} className="gap-2">
             {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-            AI Generate All
+            <span className="hidden sm:inline">AI Generate</span>
           </Button>
           <Button size="sm" onClick={downloadPDF} className="gap-2">
-            <Download className="w-3 h-3" /> Download PDF
+            <Download className="w-3 h-3" /> <span className="hidden sm:inline">PDF</span>
           </Button>
         </div>
       </header>
+
+      {/* Saved Resumes Panel */}
+      <AnimatePresence>
+        {showSavedPanel && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b border-border bg-card overflow-hidden"
+          >
+            <div className="max-w-5xl mx-auto px-6 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-semibold text-sm">My Saved Resumes</h3>
+                <Button variant="outline" size="sm" onClick={startNewResume} className="gap-2 text-xs">
+                  <FilePlus className="w-3 h-3" /> New Resume
+                </Button>
+              </div>
+              {isLoadingResumes ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-3">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+                </div>
+              ) : savedResumes.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-3">No saved resumes yet. Click <strong>Save</strong> to create your first draft.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {savedResumes.map(r => (
+                    <button
+                      key={r.id}
+                      onClick={() => loadResume(r.id)}
+                      className={`group p-3 rounded-xl border text-left transition-all hover:border-primary/40 ${
+                        currentResumeId === r.id ? 'border-primary bg-primary/5' : 'border-border bg-background'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{r.title}</p>
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Clock className="w-2.5 h-2.5" /> {formatDate(r.updated_at)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={e => { e.stopPropagation(); deleteResume(r.id); }}
+                        >
+                          <Trash2 className="w-3 h-3 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-5xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Editor */}
@@ -182,10 +384,9 @@ const Resume = () => {
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost" size="sm"
-                      className={`h-7 gap-1.5 text-xs transition-all ${isSectionGenerating ? 'text-primary' : isTyping ? 'text-primary opacity-100' : hasContent ? 'text-muted-foreground opacity-60 hover:opacity-100' : 'text-primary'}`}
+                      className={`h-7 gap-1.5 text-xs transition-all ${isSectionGenerating ? 'text-primary' : isTyping ? 'text-primary' : hasContent ? 'text-muted-foreground opacity-60 hover:opacity-100' : 'text-primary'}`}
                       onClick={() => generateSectionContent(section.id)}
                       disabled={isSectionGenerating || !!generatingSection}
-                      title={hasContent ? 'Enhance with AI' : 'Generate with AI'}
                     >
                       {isSectionGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                       <span className="hidden sm:inline">{isSectionGenerating ? 'Generating...' : hasContent ? 'Enhance' : 'AI Fill'}</span>
@@ -195,7 +396,7 @@ const Resume = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="px-4 pb-3 relative">
+                <div className="px-4 pb-3">
                   <Textarea
                     value={section.content}
                     onChange={e => updateSection(section.id, 'content', e.target.value)}
@@ -203,14 +404,10 @@ const Resume = () => {
                     className="min-h-[100px] text-sm border-0 p-0 bg-transparent focus-visible:ring-0 resize-none"
                   />
                   {!hasContent && !isSectionGenerating && (
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">
-                      Start typing or click <Wand2 className="w-2.5 h-2.5 inline" /> to auto-generate
-                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">Start typing or click <Wand2 className="w-2.5 h-2.5 inline" /> to auto-generate</p>
                   )}
                   {isTyping && !isSectionGenerating && (
-                    <p className="text-[10px] text-primary/60 mt-1">
-                      💡 Click <span className="font-medium">Enhance</span> to polish your content with AI
-                    </p>
+                    <p className="text-[10px] text-primary/60 mt-1">💡 Click <span className="font-medium">Enhance</span> to polish with AI</p>
                   )}
                 </div>
               </motion.div>
@@ -222,45 +419,29 @@ const Resume = () => {
           </Button>
 
           <p className="text-[10px] text-muted-foreground/50 text-center">
-            Tip: Type a job title and basic info, then click <Wand2 className="w-2.5 h-2.5 inline" /> to generate polished bullet points
+            Tip: Type content then click <Wand2 className="w-2.5 h-2.5 inline" /> to enhance · Your work auto-saves when you click Save
           </p>
         </div>
 
         {/* Preview */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-lg">Preview</h2>
-          </div>
-
-          {/* Template Switcher */}
+          <h2 className="font-display font-semibold text-lg">Preview</h2>
           <div className="flex gap-2">
             {templates.map(t => (
               <button
                 key={t.id}
                 onClick={() => setActiveTemplate(t.id)}
                 className={`flex-1 p-3 rounded-xl border text-left transition-all ${
-                  activeTemplate === t.id
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                    : 'border-border bg-card hover:border-primary/30'
+                  activeTemplate === t.id ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border bg-card hover:border-primary/30'
                 }`}
               >
-                <span className={`text-xs font-display font-semibold block ${activeTemplate === t.id ? 'text-primary' : 'text-foreground'}`}>
-                  {t.name}
-                </span>
+                <span className={`text-xs font-display font-semibold block ${activeTemplate === t.id ? 'text-primary' : 'text-foreground'}`}>{t.name}</span>
                 <span className="text-[10px] text-muted-foreground">{t.description}</span>
               </button>
             ))}
           </div>
-
           <div className="sticky top-20">
-            <ResumePreview
-              ref={resumeRef}
-              template={activeTemplate}
-              fullName={fullName}
-              email={email}
-              phone={phone}
-              sections={sections}
-            />
+            <ResumePreview ref={resumeRef} template={activeTemplate} fullName={fullName} email={email} phone={phone} sections={sections} />
           </div>
         </div>
       </div>
