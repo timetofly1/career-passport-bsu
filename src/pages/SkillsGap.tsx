@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { streamChat } from '@/lib/stream-chat';
 import MessageCard from '@/components/MessageCard';
+import SkillsGapCard, { parseSkillsGapData, SkillsGapData } from '@/components/SkillsGapCard';
 import { Button } from '@/components/ui/button';
 import ChatInput from '@/components/ChatInput';
 import { ArrowLeft, BarChart3, Loader2 } from 'lucide-react';
@@ -15,6 +16,8 @@ const jobExamples = [
   { label: '📊 Data Analyst', prompt: 'Analyze my skills gap for a Data Analyst position.' },
   { label: '📈 Product Manager', prompt: 'Analyze my skills gap for a Product Manager role.' },
   { label: '🎨 UX Designer', prompt: 'Analyze my skills gap for a UX Designer position.' },
+  { label: '🔐 Cybersecurity Analyst', prompt: 'Analyze my skills gap for a Cybersecurity Analyst role.' },
+  { label: '🧬 Biotech Researcher', prompt: 'Analyze my skills gap for a Biotechnology Research position.' },
 ];
 
 const SkillsGap = () => {
@@ -22,14 +25,29 @@ const SkillsGap = () => {
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: "Welcome to the Skills Gap Analyzer! 📊\n\nI'll compare your current profile against target job requirements and show you exactly where to focus your growth. Choose a role below or tell me the specific job title you're targeting." },
+    { role: 'assistant', content: "Welcome to the Skills Gap Analyzer! 📊\n\nI'll compare your current profile against target job requirements and show you exactly where to focus your growth.\n\nChoose a role below or tell me the specific job title you're targeting." },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [parsedAnalyses, setParsedAnalyses] = useState<Map<number, SkillsGapData>>(new Map());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages]);
+
+  // Try to parse skills gap data whenever messages change
+  useEffect(() => {
+    const newParsed = new Map(parsedAnalyses);
+    messages.forEach((m, i) => {
+      if (m.role === 'assistant' && !newParsed.has(i)) {
+        const data = parseSkillsGapData(m.content);
+        if (data) newParsed.set(i, data);
+      }
+    });
+    if (newParsed.size !== parsedAnalyses.size) {
+      setParsedAnalyses(newParsed);
+    }
   }, [messages]);
 
   const send = async (text?: string) => {
@@ -67,6 +85,24 @@ const SkillsGap = () => {
     });
   };
 
+  const renderMessage = (m: Msg, i: number) => {
+    // If we have parsed skills gap data for this message, render the visual card
+    const parsedData = parsedAnalyses.get(i);
+    if (parsedData && m.role === 'assistant') {
+      return <SkillsGapCard key={i} data={parsedData} />;
+    }
+
+    // Otherwise render the normal message card
+    return (
+      <MessageCard
+        key={i}
+        content={m.content}
+        role={m.role}
+        isStreaming={isLoading && i === messages.length - 1 && m.role === 'assistant'}
+      />
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background">
       <header className="border-b border-border px-4 py-3 flex items-center gap-3">
@@ -82,15 +118,8 @@ const SkillsGap = () => {
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m, i) => (
-          <MessageCard
-            key={i}
-            content={m.content}
-            role={m.role}
-            isStreaming={isLoading && i === messages.length - 1 && m.role === 'assistant'}
-          />
-        ))}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-5">
+        {messages.map((m, i) => renderMessage(m, i))}
 
         {messages.length === 1 && (
           <div className="flex flex-wrap gap-2 ml-11">
@@ -98,7 +127,7 @@ const SkillsGap = () => {
               <button
                 key={j.label}
                 onClick={() => send(j.prompt)}
-                className="px-3 py-1.5 text-xs rounded-full border border-border bg-card hover:border-primary/40 transition-colors"
+                className="px-3 py-2 text-xs rounded-full border border-border bg-card hover:border-primary/40 transition-colors"
               >
                 {j.label}
               </button>
