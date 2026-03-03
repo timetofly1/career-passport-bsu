@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { toast } from '@/hooks/use-toast';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import bsuBear from '@/assets/bsu-bear.png';
 
 const Auth = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -83,8 +84,8 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
       <nav className="px-6 py-4 flex items-center gap-3 border-b border-border">
-        <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-display font-bold text-sm">BSU</span>
+        <div className="w-9 h-9 rounded-lg overflow-hidden">
+          <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
         </div>
         <div>
           <span className="font-display font-bold text-sm">Career Passport</span>

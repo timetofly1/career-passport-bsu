@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
-import { Map, User, Bot } from 'lucide-react';
+import { Map, User } from 'lucide-react';
+import bsuBear from '@/assets/bsu-bear.png';
 
 interface MessageCardProps {
   content: string;
@@ -71,8 +72,8 @@ const MessageCard = ({ content, role, isStreaming }: MessageCardProps) => {
   // Default assistant message
   return (
     <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-1">
-        <Bot className="w-4 h-4 text-primary" />
+      <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden mt-1">
+        <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
       </div>
       <div className="flex-1 max-w-[85%] overflow-hidden">
         <div className={proseClasses}>

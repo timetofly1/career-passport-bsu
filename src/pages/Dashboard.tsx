@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageSquare, FileText, Map, User, ArrowRight, Settings, Mic, BarChart3, ExternalLink, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import bsuBear from '@/assets/bsu-bear.png';
 
 const features = [
   { icon: MessageSquare, label: 'AI Career Chat', desc: 'Get personalized career advice', path: '/chat', color: 'bg-primary/10 text-primary' },
@@ -34,8 +35,8 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-xs">BSU</span>
+          <div className="w-9 h-9 rounded-xl overflow-hidden">
+            <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">Career Passport</h1>

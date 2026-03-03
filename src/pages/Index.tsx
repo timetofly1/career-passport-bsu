@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import bsuBear from '@/assets/bsu-bear.png';
 
 const BSU_LINKS = [
   { label: 'Handshake', url: 'https://bridgew.joinhandshake.com/edu' },
@@ -29,8 +30,8 @@ const Index = () => {
       {/* Nav */}
       <nav className="px-6 py-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-sm">BSU</span>
+          <div className="w-9 h-9 rounded-lg overflow-hidden">
+            <img src={bsuBear} alt="BSU Bear" className="w-full h-full object-cover" />
           </div>
           <div>
             <span className="font-display font-bold text-sm">Career Passport</span>
