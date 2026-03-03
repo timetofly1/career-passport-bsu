@@ -47,7 +47,7 @@ const Auth = () => {
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth`,
           },
         });
         if (signUpError) throw signUpError;
@@ -82,7 +82,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error: oauthError } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth`,
       });
       if (oauthError) {
         throw new Error('Google sign-in failed. Please try again.');
