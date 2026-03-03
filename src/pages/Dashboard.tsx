@@ -1,7 +1,8 @@
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, FileText, Map, User, ArrowRight, Settings, Mic, BarChart3, ExternalLink } from 'lucide-react';
+import { MessageSquare, FileText, Map, User, ArrowRight, Settings, Mic, BarChart3, ExternalLink, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [
@@ -26,6 +27,7 @@ const bsuResources = [
 
 const Dashboard = () => {
   const { profile, resetOnboarding } = useOnboarding();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -40,9 +42,14 @@ const Dashboard = () => {
             <p className="text-[10px] text-muted-foreground">Career Services & Internship Office</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={resetOnboarding} title="Reset onboarding">
-          <Settings className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={resetOnboarding} title="Reset onboarding">
+            <Settings className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={signOut} title="Sign out">
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
