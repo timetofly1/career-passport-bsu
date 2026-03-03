@@ -6,9 +6,13 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Sparkles, GraduationCap, Target, Heart } from 'lucide-react';
 
-const GOALS = ['Get an Internship', 'Land a Full-Time Job', 'Build a Portfolio', 'Network with Professionals', 'Explore Career Options', 'Start a Business'];
-const INTERESTS = ['Technology', 'Business', 'Design', 'Healthcare', 'Engineering', 'Arts & Media', 'Science', 'Education', 'Finance', 'Law'];
-const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Recent Graduate'];
+const GOALS = ['Get an Internship', 'Land a Full-Time Job', 'Build a Portfolio', 'Network with Professionals', 'Explore Career Options', 'Prepare for Graduate School'];
+const INTERESTS = [
+  'Aviation', 'Business, Accounting & Finance', 'Communications & Media', 'Counseling & Human Services',
+  'Education', 'Fine & Performing Arts', 'Government, Criminal Justice & Law', 'Health Care & Wellness',
+  'Life Sciences & Biotechnology', 'STEM', 'Sports', 'Technology & Cybersecurity',
+];
+const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni'];
 
 const Onboarding = () => {
   const { profile, setProfile, completeOnboarding } = useOnboarding();
@@ -57,6 +61,17 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
+        {/* BSU Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-display font-bold text-sm">BSU</span>
+          </div>
+          <div>
+            <span className="font-display font-bold text-sm">Career Passport</span>
+            <p className="text-[10px] text-muted-foreground">Career Services & Internship Office</p>
+          </div>
+        </div>
+
         {/* Progress */}
         <div className="flex gap-2 mb-8">
           {Array.from({ length: totalSteps }).map((_, i) => (
@@ -82,8 +97,8 @@ const Onboarding = () => {
             {step === 0 && (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-3xl font-display font-bold mb-2">Welcome to Career Passport</h1>
-                  <p className="text-muted-foreground">Your AI-powered career navigator. Let's start with your name.</p>
+                  <h1 className="text-3xl font-display font-bold mb-2">Welcome, Bear! 🐻</h1>
+                  <p className="text-muted-foreground">Your AI-powered career navigator from BSU Career Services. Let's start with your name.</p>
                 </div>
                 <Input
                   placeholder="Enter your full name"
@@ -99,7 +114,7 @@ const Onboarding = () => {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-3xl font-display font-bold mb-2">Tell us about your studies</h1>
-                  <p className="text-muted-foreground">This helps us tailor career advice to your background.</p>
+                  <p className="text-muted-foreground">This helps us tailor career advice to your BSU background.</p>
                 </div>
                 <Input
                   placeholder="Your major (e.g., Computer Science)"
@@ -153,8 +168,8 @@ const Onboarding = () => {
             {step === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-3xl font-display font-bold mb-2">Your interests</h1>
-                  <p className="text-muted-foreground">Pick fields that excite you. This fuels smarter recommendations.</p>
+                  <h1 className="text-3xl font-display font-bold mb-2">Your career interests</h1>
+                  <p className="text-muted-foreground">Pick fields that excite you. Aligned with BSU career interest areas.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {INTERESTS.map(i => (

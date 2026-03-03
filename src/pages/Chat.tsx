@@ -11,15 +11,16 @@ import { toast } from 'sonner';
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const modeConfig: Record<string, { label: string; icon: typeof Sparkles; placeholder: string; greeting: string }> = {
-  default: { label: 'Career Chat', icon: Sparkles, placeholder: 'Ask me anything about your career...', greeting: "Hi! I'm your Career Passport AI — your personal career advisor. Ask me about job searching, salary negotiation, networking strategies, industry trends, or any career question you have!" },
-  about: { label: 'About You', icon: User, placeholder: 'Tell me about yourself or ask for your profile...', greeting: "I'll analyze your profile and create a detailed career profile card. Just say \"create my profile\" or tell me more about yourself!" },
+  default: { label: 'Career Chat', icon: Sparkles, placeholder: 'Ask me anything about your career at BSU...', greeting: "Hi Bear! 🐻 I'm your BSU Career Passport AI — your personal career advisor from the Career Services & Internship Office. Ask me about job searching, salary negotiation, networking, BSU career resources, Handshake, or any career question!" },
+  about: { label: 'About You', icon: User, placeholder: 'Tell me about yourself or ask for your profile...', greeting: "I'll analyze your BSU profile and create a detailed career profile card. Just say \"create my profile\" or tell me more about yourself!" },
 };
 
 const quickActions = [
-  { label: '💼 Job search strategies', mode: 'default' },
+  { label: '💼 Job search on Handshake', mode: 'default' },
   { label: '💰 Salary negotiation tips', mode: 'default' },
-  { label: '🤝 Networking advice', mode: 'default' },
+  { label: '🤝 BSU networking events', mode: 'default' },
   { label: '📧 Cold email templates', mode: 'default' },
+  { label: '🐻 BSU career resources', mode: 'default' },
   { label: '🎯 Build my profile', mode: 'about' },
 ];
 
