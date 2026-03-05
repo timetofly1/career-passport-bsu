@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +32,6 @@ const defaultSections: ResumeSection[] = [
 
 const Resume = () => {
   const { profile } = useOnboarding();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile.name);
   const [email, setEmail] = useState('');
