@@ -31,14 +31,6 @@ const Onboarding = () => {
     ...INTERESTS.filter(i => !suggestedInterests.includes(i)),
   ];
 
-  // Pre-fill name from auth if empty
-  useEffect(() => {
-    if (user && !profile.name) {
-      const authName = user.user_metadata?.full_name || user.user_metadata?.name || '';
-      if (authName) setProfile(p => ({ ...p, name: authName }));
-    }
-  }, [user]);
-
   // Redirect if already onboarded
   useEffect(() => {
     if (isOnboarded) navigate('/dashboard');
