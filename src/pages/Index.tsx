@@ -2,7 +2,6 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3, ExternalLink } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import bsuBear from '@/assets/bsu-bear.png';
 
@@ -118,14 +117,14 @@ const StatsBar = () => {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isOnboarded, loading: onboardingLoading } = useOnboarding();
+  const { isOnboarded, loading } = useOnboarding();
 
-  if (authLoading || onboardingLoading) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" /></div>;
   }
-  if (user && isOnboarded) return <Navigate to="/dashboard" replace />;
-  if (user && !isOnboarded) return <Navigate to="/onboarding" replace />;
+  if (isOnboarded) return <Navigate to="/dashboard" replace />;
+
+  const handleGetStarted = () => navigate('/onboarding');
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -155,7 +154,7 @@ const Index = () => {
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
             AI-powered career coaching built for BSU Bears. Get personalized roadmaps, mock interviews, resume help, and skills analysis — all connected to BSU Career Services resources.
           </p>
-          <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 text-base px-8">
+          <Button size="lg" onClick={handleGetStarted} className="gap-2 text-base px-8">
             Start Your Passport <ArrowRight className="w-4 h-4" />
           </Button>
           <div className="mt-6">
@@ -178,11 +177,7 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.slice(0, 3).map(f => (
-              <div
-                key={f.label}
-                aria-label={f.label}
-                className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200"
-              >
+              <div key={f.label} aria-label={f.label} className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200">
                 <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
                   <f.icon className={`w-6 h-6 ${f.color}`} />
                 </div>
@@ -193,11 +188,7 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 max-w-[calc(66.666%+0.75rem)] lg:mx-auto">
             {FEATURES.slice(3).map(f => (
-              <div
-                key={f.label}
-                aria-label={f.label}
-                className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200"
-              >
+              <div key={f.label} aria-label={f.label} className="bg-card border border-border rounded-xl p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-200">
                 <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
                   <f.icon className={`w-6 h-6 ${f.color}`} />
                 </div>
@@ -209,7 +200,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats/Trust Bar */}
       <StatsBar />
 
       {/* Final CTA */}
@@ -220,14 +210,9 @@ const Index = () => {
           <p className="text-muted-foreground max-w-lg mx-auto mt-3">
             Join BSU Bears already using Career Passport to land internships, build resumes, and prepare for interviews.
           </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/auth')}
-            className="gap-2 text-lg px-8 py-3 rounded-full mt-6"
-          >
+          <Button size="lg" onClick={handleGetStarted} className="gap-2 text-lg px-8 py-3 rounded-full mt-6">
             Get Started — It's Free <ArrowRight className="w-4 h-4" />
           </Button>
-          <p className="text-xs text-muted-foreground mt-3">Sign in with your Google account in seconds</p>
         </div>
       </section>
 
@@ -237,13 +222,7 @@ const Index = () => {
           <h3 className="text-lg font-semibold text-center mb-4">BSU Career Services Resources</h3>
           <div className="flex flex-wrap justify-center gap-2">
             {BSU_LINKS.map(l => (
-              <a
-                key={l.label}
-                href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-primary/20 text-primary hover:bg-accent hover:border-primary/50 transition-colors"
-              >
+              <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-primary/20 text-primary hover:bg-accent hover:border-primary/50 transition-colors">
                 {l.label} <ExternalLink className="w-3 h-3" />
               </a>
             ))}

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Sparkles, GraduationCap, Target, Heart, Plus, X } from 'lucide-react';
 import SearchableSelect from '@/components/SearchableSelect';
@@ -20,7 +19,6 @@ const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni'
 
 const Onboarding = () => {
   const { profile, setProfile, completeOnboarding, isOnboarded } = useOnboarding();
-  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const [customInterest, setCustomInterest] = useState('');
@@ -32,14 +30,6 @@ const Onboarding = () => {
     ...suggestedInterests,
     ...INTERESTS.filter(i => !suggestedInterests.includes(i)),
   ];
-
-  // Pre-fill name from auth if empty
-  useEffect(() => {
-    if (user && !profile.name) {
-      const authName = user.user_metadata?.full_name || user.user_metadata?.name || '';
-      if (authName) setProfile(p => ({ ...p, name: authName }));
-    }
-  }, [user]);
 
   // Redirect if already onboarded
   useEffect(() => {

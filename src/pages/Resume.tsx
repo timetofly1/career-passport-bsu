@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +32,6 @@ const defaultSections: ResumeSection[] = [
 
 const Resume = () => {
   const { profile } = useOnboarding();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile.name);
   const [email, setEmail] = useState('');
@@ -55,19 +53,20 @@ const Resume = () => {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [lastSavedLabel, setLastSavedLabel] = useState('');
 
+  const RESUMES_KEY = 'career-passport-resumes';
+
   // Load saved resumes list on mount
   useEffect(() => {
-    if (user) loadResumesList();
-  }, [user]);
+    loadResumesList();
+  }, []);
 
   // Auto-save every 30 seconds
   useEffect(() => {
-    if (!user) return;
     const interval = setInterval(() => {
       saveResumeQuiet();
     }, 30000);
     return () => clearInterval(interval);
-  }, [user, resumeTitle, fullName, email, phone, sections, activeTemplate, currentResumeId]);
+  }, [resumeTitle, fullName, email, phone, sections, activeTemplate, currentResumeId]);
 
   // Update "last saved" label every 10s
   useEffect(() => {
@@ -83,47 +82,40 @@ const Resume = () => {
     return () => clearInterval(t);
   }, [lastSavedAt]);
 
-  const loadResumesList = async () => {
-    if (!user) return;
+  const getAllResumes = (): Record<string, any> => {
+    try {
+      return JSON.parse(localStorage.getItem(RESUMES_KEY) || '{}');
+    } catch { return {}; }
+  };
+
+  const loadResumesList = () => {
     setIsLoadingResumes(true);
-    const { data } = await supabase
-      .from('resumes')
-      .select('id, title, updated_at')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
-    if (data) setSavedResumes(data);
+    const all = getAllResumes();
+    const list: SavedResume[] = Object.entries(all).map(([id, r]: [string, any]) => ({
+      id,
+      title: r.title || 'Untitled',
+      updated_at: r.updated_at || new Date().toISOString(),
+    })).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    setSavedResumes(list);
     setIsLoadingResumes(false);
   };
 
-  const saveResumeInner = async (quiet: boolean) => {
-    if (!user) return;
+  const saveResumeInner = (quiet: boolean) => {
     if (!quiet) setIsSaving(true);
     try {
-      const payload = {
-        user_id: user.id,
+      const id = currentResumeId || crypto.randomUUID();
+      const all = getAllResumes();
+      all[id] = {
         title: resumeTitle,
         full_name: fullName,
         email,
         phone,
         template: activeTemplate,
-        sections: sections as any,
+        sections,
+        updated_at: new Date().toISOString(),
       };
-
-      if (currentResumeId) {
-        const { error } = await supabase
-          .from('resumes')
-          .update(payload)
-          .eq('id', currentResumeId);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from('resumes')
-          .insert(payload)
-          .select('id')
-          .single();
-        if (error) throw error;
-        if (data) setCurrentResumeId(data.id);
-      }
+      localStorage.setItem(RESUMES_KEY, JSON.stringify(all));
+      if (!currentResumeId) setCurrentResumeId(id);
 
       if (!quiet) {
         setJustSaved(true);
@@ -141,31 +133,28 @@ const Resume = () => {
   const saveResume = () => saveResumeInner(false);
   const saveResumeQuiet = () => saveResumeInner(true);
 
-  const loadResume = async (id: string) => {
-    const { data, error } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !data) {
+  const loadResume = (id: string) => {
+    const all = getAllResumes();
+    const data = all[id];
+    if (!data) {
       toast.error('Failed to load resume');
       return;
     }
-
-    setCurrentResumeId(data.id);
+    setCurrentResumeId(id);
     setResumeTitle(data.title);
     setFullName(data.full_name);
     setEmail(data.email);
     setPhone(data.phone);
     setActiveTemplate((data.template as TemplateId) || 'classic');
-    setSections(data.sections as unknown as ResumeSection[]);
+    setSections(data.sections as ResumeSection[]);
     setShowSavedPanel(false);
     toast.success(`Loaded "${data.title}"`);
   };
 
-  const deleteResume = async (id: string) => {
-    await supabase.from('resumes').delete().eq('id', id);
+  const deleteResume = (id: string) => {
+    const all = getAllResumes();
+    delete all[id];
+    localStorage.setItem(RESUMES_KEY, JSON.stringify(all));
     if (currentResumeId === id) {
       setCurrentResumeId(null);
       setResumeTitle('Untitled Resume');

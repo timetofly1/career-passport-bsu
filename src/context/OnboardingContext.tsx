@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
 
 export interface UserProfile {
   name: string;
@@ -22,6 +20,9 @@ interface OnboardingContextType {
 
 const defaultProfile: UserProfile = { name: '', major: '', minor: [], year: '', goals: [], interests: [] };
 
+const STORAGE_KEY = 'career-passport-profile';
+const ONBOARDED_KEY = 'career-passport-onboarded';
+
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
 export const useOnboarding = () => {
@@ -31,79 +32,33 @@ export const useOnboarding = () => {
 };
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
-  const [isOnboarded, setIsOnboarded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultProfile;
+    } catch {
+      return defaultProfile;
+    }
+  });
+  const [isOnboarded, setIsOnboarded] = useState(() => {
+    return localStorage.getItem(ONBOARDED_KEY) === 'true';
+  });
+  const [loading] = useState(false);
 
-  // Load profile from DB when user logs in
+  // Persist profile to localStorage on change
   useEffect(() => {
-    if (!user) {
-      setProfile(defaultProfile);
-      setIsOnboarded(false);
-      setLoading(false);
-      return;
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  }, [profile]);
 
-    const loadProfile = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single() as { data: any; error: any };
-
-      if (data && !error) {
-        setProfile({
-          name: data.name || '',
-          major: data.major || '',
-          minor: data.minor || [],
-          year: data.year || '',
-          goals: data.goals || [],
-          interests: data.interests || [],
-        });
-        setIsOnboarded(data.is_onboarded || false);
-      }
-      setLoading(false);
-    };
-
-    loadProfile();
-  }, [user]);
-
-  const completeOnboarding = async () => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        name: profile.name,
-        major: profile.major,
-        minor: profile.minor,
-        year: profile.year,
-        goals: profile.goals,
-        interests: profile.interests,
-        is_onboarded: true,
-      })
-      .eq('user_id', user.id);
-
-    if (!error) {
-      setIsOnboarded(true);
-    }
+  const completeOnboarding = () => {
+    localStorage.setItem(ONBOARDED_KEY, 'true');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    setIsOnboarded(true);
   };
 
-  const resetOnboarding = async () => {
-    if (!user) return;
-    await supabase
-      .from('profiles')
-      .update({
-        major: '',
-        minor: [],
-        year: '',
-        goals: [],
-        interests: [],
-        is_onboarded: false,
-      })
-      .eq('user_id', user.id);
-
+  const resetOnboarding = () => {
+    localStorage.removeItem(ONBOARDED_KEY);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...profile, major: '', minor: [], year: '', goals: [], interests: [] }));
     setIsOnboarded(false);
     setProfile(p => ({ ...p, major: '', minor: [], year: '', goals: [], interests: [] }));
   };
