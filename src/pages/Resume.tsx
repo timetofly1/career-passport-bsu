@@ -154,6 +154,7 @@ const Resume = () => {
   const deleteResume = (id: string) => {
     const all = getAllResumes();
     delete all[id];
+    localStorage.setItem(RESUMES_KEY, JSON.stringify(all));
     if (currentResumeId === id) {
       setCurrentResumeId(null);
       setResumeTitle('Untitled Resume');
