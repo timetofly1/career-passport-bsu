@@ -133,31 +133,27 @@ const Resume = () => {
   const saveResume = () => saveResumeInner(false);
   const saveResumeQuiet = () => saveResumeInner(true);
 
-  const loadResume = async (id: string) => {
-    const { data, error } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !data) {
+  const loadResume = (id: string) => {
+    const all = getAllResumes();
+    const data = all[id];
+    if (!data) {
       toast.error('Failed to load resume');
       return;
     }
-
-    setCurrentResumeId(data.id);
+    setCurrentResumeId(id);
     setResumeTitle(data.title);
     setFullName(data.full_name);
     setEmail(data.email);
     setPhone(data.phone);
     setActiveTemplate((data.template as TemplateId) || 'classic');
-    setSections(data.sections as unknown as ResumeSection[]);
+    setSections(data.sections as ResumeSection[]);
     setShowSavedPanel(false);
     toast.success(`Loaded "${data.title}"`);
   };
 
-  const deleteResume = async (id: string) => {
-    await supabase.from('resumes').delete().eq('id', id);
+  const deleteResume = (id: string) => {
+    const all = getAllResumes();
+    delete all[id];
     if (currentResumeId === id) {
       setCurrentResumeId(null);
       setResumeTitle('Untitled Resume');
