@@ -1,41 +1,9 @@
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MessageSquare, FileText, Map, Mic, BarChart3, ExternalLink } from 'lucide-react';
 import { useOnboarding } from '@/context/OnboardingContext';
 import bsuBear from '@/assets/bsu-bear.png';
-
-function useCountUp(end: number, duration = 1200) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setStarted(true); observer.disconnect(); } },
-      { threshold: 0.5 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    const steps = 30;
-    const increment = end / steps;
-    let current = 0;
-    const interval = setInterval(() => {
-      current += increment;
-      if (current >= end) { setCount(end); clearInterval(interval); }
-      else setCount(Math.floor(current));
-    }, duration / steps);
-    return () => clearInterval(interval);
-  }, [started, end, duration]);
-
-  return { count, ref, started };
-}
+import bsuMascot from '@/assets/bsu-mascot.png';
 
 const BSU_LINKS = [
   { label: 'Handshake', url: 'https://bridgew.joinhandshake.com/edu' },
@@ -82,38 +50,26 @@ const FEATURES = [
   },
 ];
 
-const StatsBar = () => {
-  const tools = useCountUp(5);
-  const free = useCountUp(100);
-  const connected = useCountUp(100);
-
-  return (
-    <section className="bg-accent w-full">
-      <div className="max-w-4xl mx-auto py-12 px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div ref={tools.ref} className="md:border-r md:border-primary/15">
-            <p className={`text-2xl font-bold text-foreground transition-opacity duration-500 ${tools.started ? 'opacity-100' : 'opacity-0'}`}>
-              {tools.count} AI-Powered Tools
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">Built for BSU students</p>
-          </div>
-          <div ref={free.ref} className="md:border-r md:border-primary/15">
-            <p className={`text-2xl font-bold text-foreground transition-opacity duration-500 ${free.started ? 'opacity-100' : 'opacity-0'}`}>
-              {free.count}% Free
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">For all BSU Bears</p>
-          </div>
-          <div ref={connected.ref}>
-            <p className={`text-2xl font-bold text-foreground transition-opacity duration-500 ${connected.started ? 'opacity-100' : 'opacity-0'}`}>
-              Connected to BSU
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">Handshake, Big Interview & more</p>
-          </div>
+const StatsBar = () => (
+  <section className="bg-accent w-full">
+    <div className="max-w-4xl mx-auto py-12 px-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div className="md:border-r md:border-primary/15">
+          <p className="text-2xl font-bold text-foreground">5 AI-Powered Tools</p>
+          <p className="text-sm text-muted-foreground mt-1">Built for BSU students</p>
+        </div>
+        <div className="md:border-r md:border-primary/15">
+          <p className="text-2xl font-bold text-foreground">100% Free</p>
+          <p className="text-sm text-muted-foreground mt-1">For all BSU Bears</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-foreground">Connected to BSU</p>
+          <p className="text-sm text-muted-foreground mt-1">Handshake, Big Interview & more</p>
         </div>
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 const Index = () => {
   const navigate = useNavigate();
@@ -205,7 +161,7 @@ const Index = () => {
       {/* Final CTA */}
       <section className="bg-background py-16 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <p className="text-5xl">🐻</p>
+          <img src={bsuMascot} alt="BSU Bear Mascot" className="w-20 h-20 mx-auto" />
           <h2 className="text-3xl font-display font-bold mt-4">Ready to launch your career?</h2>
           <p className="text-muted-foreground max-w-lg mx-auto mt-3">
             Join BSU Bears already using Career Passport to land internships, build resumes, and prepare for interviews.

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import bsuBear from "@/assets/bsu-bear.png";
+import bsuMascot from "@/assets/bsu-mascot.png";
 
 const NotFound = () => {
   const location = useLocation();
@@ -27,7 +28,7 @@ const NotFound = () => {
 
       <main className="flex-1 flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="text-6xl">🐻</p>
+          <img src={bsuMascot} alt="BSU Bear Mascot" className="w-20 h-20 mx-auto" />
           <h1 className="text-2xl font-bold mt-4">Oops! Page not found</h1>
           <p className="text-muted-foreground mt-2">This page doesn't exist, but your career journey does.</p>
           <Button asChild className="gap-2 rounded-full px-6 mt-6">
