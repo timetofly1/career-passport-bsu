@@ -214,7 +214,7 @@ const Onboarding = () => {
                 {suggestedInterests.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                      ✨ Recommended based on your studies — tap to add
+                      ✨ Recommended based on your studies — <span className="text-primary font-bold underline underline-offset-2">tap to add</span>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {suggestedInterests.map(i => {
@@ -240,7 +240,7 @@ const Onboarding = () => {
                 {/* Other interests */}
                 {INTERESTS.filter(i => !suggestedInterests.includes(i)).length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Other areas — tap to add</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Other areas — <span className="text-primary font-bold underline underline-offset-2">tap to add</span></p>
                     <div className="flex flex-wrap gap-2">
                       {INTERESTS.filter(i => !suggestedInterests.includes(i)).map(i => {
                         const selected = profile.interests.includes(i);
