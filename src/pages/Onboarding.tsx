@@ -22,6 +22,7 @@ const Onboarding = () => {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const [customInterest, setCustomInterest] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // Get suggested interests based on major/minor
   const suggestedInterests = getSuggestedInterests(profile.major, profile.minor || []);
@@ -262,61 +263,78 @@ const Onboarding = () => {
                   </div>
                 )}
 
-                {/* Custom interest input — integrated inline */}
-                <div className="rounded-xl border border-dashed border-border p-4 space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Don't see your field? Add it here</p>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="e.g. Renewable Energy, UX Design…"
-                      value={customInterest}
-                      onChange={e => setCustomInterest(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && customInterest.trim()) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (!profile.interests.includes(customInterest.trim())) {
-                            setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
-                          }
-                          setCustomInterest('');
-                        }
-                      }}
-                      className="h-10 text-sm flex-1"
-                    />
-                    <Button
+                {/* Others button + expandable custom input */}
+                <div className="space-y-3">
+                  {!showCustomInput ? (
+                    <button
                       type="button"
-                      size="sm"
-                      className="h-10 px-4 gap-1.5"
-                      disabled={!customInterest.trim()}
-                      onClick={() => {
-                        if (customInterest.trim() && !profile.interests.includes(customInterest.trim())) {
-                          setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
-                        }
-                        setCustomInterest('');
-                      }}
+                      onClick={() => setShowCustomInput(true)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border-2 border-dashed border-border hover:border-primary/50 bg-card hover:bg-accent transition-all duration-200 hover:scale-[1.02] active:scale-95"
                     >
-                      <Plus className="w-4 h-4" /> Add
-                    </Button>
-                  </div>
-
-                  {/* Custom selections shown inline as removable chips */}
-                  {profile.interests.filter(i => !INTERESTS.includes(i)).length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {profile.interests.filter(i => !INTERESTS.includes(i)).map(i => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-primary-foreground"
+                      <Plus className="w-4 h-4" /> Others
+                    </button>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="rounded-xl border border-border bg-card p-4 space-y-3"
+                    >
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Add your own field</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g. Renewable Energy, UX Design…"
+                          value={customInterest}
+                          onChange={e => setCustomInterest(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && customInterest.trim()) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!profile.interests.includes(customInterest.trim())) {
+                                setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
+                              }
+                              setCustomInterest('');
+                            }
+                          }}
+                          className="h-10 text-sm flex-1"
+                          autoFocus
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-10 px-4 gap-1.5"
+                          disabled={!customInterest.trim()}
+                          onClick={() => {
+                            if (customInterest.trim() && !profile.interests.includes(customInterest.trim())) {
+                              setProfile(p => ({ ...p, interests: [...p.interests, customInterest.trim()] }));
+                            }
+                            setCustomInterest('');
+                          }}
                         >
-                          ✓ {i}
-                          <button
-                            type="button"
-                            onClick={() => setProfile(p => ({ ...p, interests: p.interests.filter(x => x !== i) }))}
-                            className="hover:bg-primary-foreground/20 rounded-full p-0.5 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                          <Plus className="w-4 h-4" /> Add
+                        </Button>
+                      </div>
+
+                      {/* Custom selections shown as removable chips */}
+                      {profile.interests.filter(i => !INTERESTS.includes(i)).length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {profile.interests.filter(i => !INTERESTS.includes(i)).map(i => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-primary-foreground"
+                            >
+                              ✓ {i}
+                              <button
+                                type="button"
+                                onClick={() => setProfile(p => ({ ...p, interests: p.interests.filter(x => x !== i) }))}
+                                className="hover:bg-primary-foreground/20 rounded-full p-0.5 transition-colors"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
                   )}
                 </div>
               </div>
